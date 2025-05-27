@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>生日弹窗模拟</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: white;
+      font-family: sans-serif;
+      overflow: hidden;
+    }
+
+    #popup {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.95);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border: 5px solid red;
+      box-shadow: 0 0 20px yellow;
+      z-index: 1000;
+    }
+
+    #countdown {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: yellow;
+    }
+
+    #puzzle {
+      display: grid;
+      grid-template-columns: repeat(3, 100px);
+      grid-gap: 5px;
+      margin-bottom: 30px;
+    }
+
+    .piece {
+      width: 100px;
+      height: 100px;
+      background-color: #111;
+      border: 1px solid #555;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      transition: background 0.5s;
+    }
+
+    .unlocked {
+      background-color: #888;
+    }
+
+    .revealed {
+      background-image: url('https://via.placeholder.com/300x300.png?text=%E5%BD%A9%E8%89%B2%E5%9B%BE');
+      background-size: 300px 300px;
+      background-repeat: no-repeat;
+    }
+
+    #cake {
+      margin-top: 20px;
+      position: relative;
+    }
+
+    #candles {
+      display: flex;
+      gap: 10px;
+    }
+
+    .candle {
+      width: 10px;
+      height: 30px;
+      background: orange;
+      position: relative;
+    }
+
+    .flame {
+      width: 10px;
+      height: 10px;
+      background: yellow;
+      border-radius: 50%;
+      position: absolute;
+      top: -10px;
+      left: 0;
+      transition: opacity 0.3s;
+    }
+
+    .extinguished .flame {
+      opacity: 0;
+    }
+
+    #confetti {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      background-image: radial-gradient(circle, red, yellow, blue);
+      background-size: 10px 10px;
+      animation: confetti 1s infinite;
+      display: none;
+    }
+
+    @keyframes confetti {
+      0% { background-position: 0 0; }
+      100% { background-position: 100px 100px; }
+    }
+  </style>
+</head>
+<body>
+<div id="popup">
+  <div id="countdown">倒计时加载中...</div>
+  <div id="puzzle"></div>
+  <div id="cake">
+    <div id="candles">
+      <div class="candle"><div class="flame"></div></div>
+      <div class="candle"><div class="flame"></div></div>
+      <div class="candle"><div class="flame"></div></div>
+    </div>
+  </div>
+</div>
+<div id="confetti"></div>
+
+<audio id="birthdayMusic" loop>
+  <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mpeg">
+</audio>
+
+<script>
+const birthday = new Date("2025-06-08T00:00:00");
+let simulatedNow = new Date(prompt("请输入当前时间模拟 (格式: YYYY-MM-DDTHH:MM:SS)", "2025-06-07T23:59:00"));
+const countdownEl = document.getElementById("countdown");
+const puzzleEl = document.getElementById("puzzle");
+const confettiEl = document.getElementById("confetti");
+const music = document.getElementById("birthdayMusic");
+
+// 模拟拼图状态（前8块解锁）
+for (let i = 0; i < 9; i++) {
+  const piece = document.createElement("div");
+  piece.classList.add("piece");
+  if (i < 8) piece.classList.add("unlocked");
+  piece.textContent = i + 1;
+  puzzleEl.appendChild(piece);
+}
+
+function updateCountdown() {
+  const diff = birthday - simulatedNow;
+  if (diff > 0) {
+    const mins = Math.floor(diff / 60000);
+    const secs = Math.floor((diff % 60000) / 1000);
+    countdownEl.textContent = `距离角色生日还有 ${mins}分${secs}秒`;
+  } else {
+    startBirthday();
+  }
+}
+
+function startBirthday() {
+  countdownEl.textContent = "生日快乐！🎂";
+  document.querySelectorAll(".candle").forEach(c => c.classList.add("extinguished"));
+  music.play();
+  confettiEl.style.display = "block";
+  // 最后一块拼图浮现为彩色
+  const last = document.querySelectorAll(".piece")[8];
+  last.classList.add("revealed");
+  last.textContent = "";
+}
+
+setInterval(() => {
+  simulatedNow = new Date(simulatedNow.getTime() + 1000);
+  updateCountdown();
+}, 1000);
+
+document.addEventListener("mousemove", e => {
+  const flames = document.querySelectorAll(".flame");
+  flames.forEach(f => {
+    f.style.transform = `translate(${(Math.random() - 0.5) * 10}px, 0)`;
+  });
+});
+
+updateCountdown();
+</script>
+</body>
+</html>
